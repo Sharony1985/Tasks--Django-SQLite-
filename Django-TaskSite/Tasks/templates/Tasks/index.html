@@ -1,0 +1,20 @@
+{% if task_list %}
+    <table border="1">
+    	<tr>
+    		<th>Task Name</th>
+    		<th>Task Description</th>
+    		<th>Task Time</th>
+    		<th>Task Priority</th>
+    	</tr>
+    {% for task in task_list %}
+        <tr>
+    		<td>{{ task.name_text }}</td>
+    		<td>{{task.description_text}}</td>
+    		<td>{{ task.task_date }}</td>
+    		<td>{{ task.priority }}</td>
+    	</tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No tasks are available.</p>
+{% endif %}

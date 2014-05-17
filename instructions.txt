@@ -1,0 +1,113 @@
+open this file in Sublime Text
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------Setting the envirment - a “project”
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+django-admin.py startproject TaskSite
+
+TaskSite/					--just a container for your project. Its name doesn’t matter to Django
+    manage.py				--A command-line utility that lets you interact with this Django project in various ways
+    TaskSite/				--actual Python package for your project. Its name is the Python package name you’ll need to use to import anything inside it 
+        __init__.py			--An empty file that tells Python that this directory should be considered a Python package.
+        settings.py			-- Settings/configuration for this Django project.
+        urls.py				-- The URL declarations for this Django project; a “table of contents” of your Django-powered site
+        wsgi.py				--An entry-point for WSGI-compatible web servers to serve your project. 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------Runing the server 
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+python manage.py runserver 8080
+
+Now I can go to http://127.0.0.1:8080/
+but when I try http://127.0.0.1:8080/Admin I get an ERRORRRRRRRR
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------Runing syncdb - Setting DB & Admin site tables
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+So I need to execute:
+python manage.py syncdb    --answer: yes , username=admin , email=... password=admin
+			(it will also create the DB in the setting.py - SQLite , The syncdb command will only create tables for apps in INSTALLED_APPS.)
+Now I can go to http://127.0.0.1:8080/Admin
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------Creating our Application
+------Each application you write in Django consists of a Python package
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+python manage.py startapp Tasks --automatically generates the basic directory structure of an app
+
+Tasks/
+    __init__.py
+    admin.py
+    models.py
+    tests.py
+    views.py
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------- Define our Model - The first step in writing a database Web app in Django is to define your models
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+in App "Task" in "models.py" add:
+class Task(models.Model):
+    name_text = models.CharField(max_length=50)
+    description_text =  models.CharField(max_length=200)
+    task_date = models.DateTimeField('date of task')
+    priority = models.IntegerField(default=0)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------- Activating models - Create a database schema + Create a Python database-access API for accessing Task
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+in TaskSite/settings.py add in  INSTALLED_APPS   "Tasks" (package)
+
+python manage.py sql Tasks 			-- shows the tables from Tasks Application 
+python manage.py syncdb     		-- add the tables
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- Add the model to the Admin Interface
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+in Tasks\Admin.py add:
+
+from Tasks.models import Task
+admin.site.register(Task)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- Creating template
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Add File "index.html" in Tasks/templates/Tasks
+
+----------------------------------------------------- add in Tasks/templates/Tasks/index.html  -- like VIEW
+{% if task_list %}
+    <table>
+    	<tr>
+    		<td>Task Name</td>
+    		<td>Task Description</td>
+    		<td>Task Time</td>
+    		<td>Task Priority</td>
+    	</tr>
+    {% for task in task_list %}
+        <tr>
+    		<td>{{ task.name_text }}</td>
+    		<td>{{task.description_text}}</td>
+    		<td>Task Time</td>
+    		<td>Task Priority</td>
+    	</tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No tasks are available.</p>
+{% endif %}
+
+----------------------------------------------------- add in Tasks/views.py   -- like ACTION in CONTROLLERS name index
+from Tasks.models import Task
+
+def index(request):
+    task_list = Task.objects.all()
+    context = {'task_list': task_list}
+    return render(request, 'Tasks/index.html', context)
+
+----------------------------------------------------- add in TaskSite/urls.py   -- URL MAPPING TO ACTION + CONTROLLER
+url(r'^task/', 'Tasks.views.index'),
+
+
+go to http://127.0.0.1:8080/task/
